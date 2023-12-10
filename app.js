@@ -1,32 +1,20 @@
-const express = require('express');
-const path = require('path');
-const http = require('http');
-const Primus = require('primus');
+var express = require('express');
+var path = require('path');
+var cookieParser = require('cookie-parser');
+var logger = require('morgan');
 
-const app = express();
-const server = http.createServer(app);
-const primus = new Primus(server, { /* Primus configuration options */ });
+var indexRouter = require('./routes/index');
+var usersRouter = require('./routes/users');
 
-// Express route for regular HTTP requests
-app.get('/', (req, res) => {
-  res.send('Hello, Express!');
-});
+var app = express();
 
-// Primus WebSocket connection handling
-primus.on('connection', (spark) => {
-  console.log('Client connected:', spark.id);
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
 
-  spark.on('data', (data) => {
-    console.log('Received data from client:', data);
-  });
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
 
-  // Add more event handlers as needed
-
-  spark.write('Hello from the server!');
-});
-
-// Start the server
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
-});
+module.exports = app;
